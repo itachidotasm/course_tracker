@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JECRC · B.Tech CSE (Cyber Security) · 2025–29</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F6F3EE;--surface:#FFFFFE;--border:rgba(28,24,16,.1);--border-md:rgba(28,24,16,.18);
+  --ink:#1A1612;--ink2:#5C554B;--ink3:#9A9088;
+  --teal:#157A6E;--teal-bg:#EAF5F3;
+  --amber:#9B6120;--amber-bg:#FAF2E6;
+  --red:#8B2525;--red-bg:#FAF0EF;
+  --blue:#1C4B7A;--blue-bg:#EEF4FC;
+  --green:#2A6030;--green-bg:#EDF6EE;
+}
+[data-theme="dark"]{
+  --bg:#111009;--surface:#1C1A16;--border:rgba(255,250,235,.08);--border-md:rgba(255,250,235,.14);
+  --ink:#EDE8DF;--ink2:#9A9088;--ink3:#5C554B;
+  --teal:#2AADA0;--teal-bg:#0C2422;
+  --amber:#C4843C;--amber-bg:#1E1508;
+  --red:#C44242;--red-bg:#1E0C0C;
+  --blue:#4A88C8;--blue-bg:#0C1720;
+  --green:#4A9A52;--green-bg:#0C1C0E;
+}
+body{transition:background .25s,color .25s}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.6}
+#app{display:none}
+#lockscreen{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0}
+.lock-wrap{background:var(--surface);border:.5px solid var(--border-md);border-radius:16px;padding:2.5rem 2rem;width:340px;text-align:center}
+.lock-icon{font-size:28px;margin-bottom:1.25rem;opacity:.35}
+.lock-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:400;color:var(--ink);margin-bottom:4px}
+.lock-sub{font-size:12.5px;color:var(--ink3);margin-bottom:1.75rem}
+.lock-input{width:100%;padding:.7rem 1rem;border:.5px solid var(--border-md);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:14px;background:var(--bg);color:var(--ink);outline:none;letter-spacing:.08em;transition:border-color .15s;text-align:center}
+.lock-input:focus{border-color:var(--teal)}
+.lock-input.err{border-color:var(--red);animation:shake .3s ease}
+.lock-btn{margin-top:.875rem;width:100%;padding:.7rem;background:var(--ink);color:var(--surface);border-radius:8px;font-size:13.5px;font-weight:500;cursor:pointer;transition:opacity .15s}
+.lock-btn:hover{opacity:.85}
+.lock-err{font-size:12px;color:var(--red);margin-top:.625rem;min-height:16px}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+
+/* ── Dark toggle ── */
+.dark-btn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;border:.5px solid var(--border-md);background:var(--bg);color:var(--ink2);font-size:15px;transition:background .2s,border-color .2s;cursor:pointer;flex-shrink:0}
+.dark-btn:hover{background:var(--teal-bg);border-color:var(--teal);color:var(--teal)}
+
+/* ── Header ── */
+.hdr{background:var(--surface);border-bottom:.5px solid var(--border-md);padding:1.25rem 1.75rem;position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.hdr-left{}
+.hdr-eyebrow{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:2px}
+.hdr-title{font-family:'Playfair Display',serif;font-size:21px;font-weight:400;line-height:1.2;color:var(--ink)}
+.hdr-right{text-align:right}
+.hdr-sub{font-size:12px;color:var(--ink3)}
+.hdr-chips{display:flex;gap:6px;justify-content:flex-end;margin-top:5px}
+.chip{font-size:10px;padding:2px 8px;border-radius:20px;border:.5px solid var(--border-md);color:var(--ink2);background:var(--bg)}
+.chip.ec{background:var(--red-bg);color:var(--red);border-color:transparent}
+
+/* ── Layout ── */
+.layout{display:grid;grid-template-columns:210px 1fr}
+
+/* ── Sidebar ── */
+.sidebar{background:var(--surface);border-right:.5px solid var(--border);position:sticky;top:70px;height:calc(100vh - 70px);overflow-y:auto;padding:1.25rem .875rem}
+.sb-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);padding:0 .5rem;margin-bottom:.625rem}
+.sem-btn{display:flex;align-items:center;justify-content:space-between;width:100%;padding:.55rem .75rem;border-radius:7px;font-size:13px;color:var(--ink2);margin-bottom:1px;transition:background .12s,color .12s}
+.sem-btn:hover{background:var(--bg)}
+.sem-btn.active{background:var(--teal-bg);color:var(--teal);font-weight:500}
+.sem-btn .dot{width:6px;height:6px;border-radius:50%;background:var(--teal);flex-shrink:0}
+.sem-btn .credits-hint{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--ink3)}
+.sb-divider{height:.5px;background:var(--border);margin:.875rem .5rem}
+
+/* ── Main ── */
+.main{padding:1.75rem 2rem;min-height:calc(100vh - 70px)}
+.sem-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:400;color:var(--ink);margin-bottom:4px;display:flex;align-items:center;gap:.5rem}
+.sem-desc{font-size:13px;color:var(--ink2);margin-bottom:1.5rem}
+.status-pill{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500}
+.status-pill.completed{background:var(--green-bg);color:var(--green)}
+.status-pill.current{background:var(--teal-bg);color:var(--teal)}
+.status-pill.upcoming{background:var(--bg);color:var(--ink3);border:.5px solid var(--border-md)}
+
+/* ── Stats row ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.5rem}
+.stat{background:var(--surface);border:.5px solid var(--border);border-radius:10px;padding:.875rem 1rem}
+.stat-val{font-family:'Playfair Display',serif;font-size:24px;font-weight:400;color:var(--ink);line-height:1;margin-bottom:3px}
+.stat-lbl{font-size:11px;color:var(--ink3)}
+
+/* ── Calendar ── */
+.cal-card{background:var(--surface);border:.5px solid var(--border);border-radius:12px;margin-bottom:1.5rem;overflow:hidden}
+.cal-head{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem .75rem;border-bottom:.5px solid var(--border)}
+.cal-title{font-size:13px;font-weight:500}
+.cal-note{font-size:11px;color:var(--ink3)}
+.timeline{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.tl-item{display:flex;align-items:flex-start;gap:10px;padding:.625rem 1.25rem;position:relative}
+.tl-item:not(:nth-last-child(-n+2)){border-bottom:.5px solid var(--border)}
+.tl-item:nth-child(odd){border-right:.5px solid var(--border)}
+.tl-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.tl-dot.past{background:var(--ink3)}
+.tl-dot.near{background:var(--amber)}
+.tl-dot.upcoming{border:1.5px solid var(--ink3);background:none}
+.tl-dot.done{background:var(--teal)}
+.tl-info{}
+.tl-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink3);margin-bottom:1px}
+.tl-label{font-size:12.5px;color:var(--ink)}
+.tl-label.past{color:var(--ink3)}
+.tl-label.near{color:var(--amber);font-weight:500}
+.tl-label.upcoming{color:var(--ink);font-weight:500}
+.tl-label.done{color:var(--teal);font-weight:500}
+
+/* ── Section divider ── */
+.sec-div{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);display:flex;align-items:center;gap:.75rem;margin:1.5rem 0 .875rem}
+.sec-div::after{content:'';flex:1;height:.5px;background:var(--border)}
+
+/* ── Course cards ── */
+.course-card{background:var(--surface);border:.5px solid var(--border);border-radius:12px;margin-bottom:7px;overflow:hidden;transition:border-color .13s}
+.course-card:hover{border-color:var(--border-md)}
+.course-head{display:grid;grid-template-columns:1fr auto;align-items:center;gap:1rem;padding:.9rem 1.25rem;cursor:pointer}
+.c-code{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink3);margin-bottom:3px}
+.c-name{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:5px}
+.badges{display:flex;gap:5px;flex-wrap:wrap}
+.badge{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:500}
+.b-core{background:var(--blue-bg);color:var(--blue)}
+.b-fnd{background:var(--bg);color:var(--ink2);border:.5px solid var(--border)}
+.b-aec{background:var(--green-bg);color:var(--green)}
+.b-sec{background:var(--amber-bg);color:var(--amber)}
+.b-vac{background:var(--bg);color:var(--ink3);border:.5px solid var(--border)}
+.b-multi{background:var(--teal-bg);color:var(--teal)}
+.b-ec{background:var(--red-bg);color:var(--red)}
+.b-cr{background:var(--bg);color:var(--ink2);border:.5px solid var(--border)}
+.c-toggle{color:var(--ink3);font-size:18px;font-family:'JetBrains Mono',monospace;transition:transform .2s;flex-shrink:0;line-height:1}
+.c-toggle.open{transform:rotate(45deg)}
+.c-body{display:none;padding:0 1.25rem 1.25rem;border-top:.5px solid var(--border)}
+.c-body.open{display:block}
+.c-inner{padding-top:1rem}
+.syl-lbl{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);margin-bottom:.75rem;font-weight:500}
+.syl-na{font-size:13px;color:var(--ink3);font-style:italic}
+.syl-common{font-size:12.5px;color:var(--ink2);padding:.625rem .875rem;background:var(--bg);border-radius:7px}
+.mods{display:flex;flex-direction:column;gap:8px}
+.mod{display:grid;grid-template-columns:28px 1fr;gap:8px}
+.mod-n{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--teal);padding-top:2px;font-weight:500}
+.mod-title{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:2px}
+.mod-topics{font-size:12px;color:var(--ink2);line-height:1.5}
+.cos{margin-top:.75rem;display:flex;flex-direction:column;gap:5px}
+.co{display:grid;grid-template-columns:30px 1fr;gap:8px;font-size:12.5px;color:var(--ink2)}
+.co-k{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--teal);font-weight:500;padding-top:1px}
+.exps{display:flex;flex-direction:column;gap:6px}
+.exp{display:grid;grid-template-columns:26px 1fr;gap:8px;font-size:12.5px;color:var(--ink2)}
+.exp-n{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink3);padding-top:1px}
+
+/* ── Empty semester ── */
+.empty-sem{background:var(--surface);border:.5px solid var(--border);border-radius:12px;padding:1.5rem 1.75rem}
+.empty-courses{display:flex;flex-direction:column;gap:6px;margin-top:1rem}
+.empty-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:1rem;padding:.6rem .875rem;background:var(--bg);border-radius:7px}
+.empty-course-name{font-size:13px;color:var(--ink2)}
+.empty-note{font-size:12px;color:var(--ink3);font-style:italic;margin-top:.5rem}
+</style>
+</head>
+<body>
+
+<div id="lockscreen">
+  <div class="lock-wrap">
+    <div class="lock-icon">🔒</div>
+    <div class="lock-title">Course Tracker</div>
+    <div class="lock-sub">JECRC · B.Tech CSE Cyber Security · 2025–29</div>
+    <input class="lock-input" id="lock-input" type="password" placeholder="enter access code" autocomplete="off" onkeydown="if(event.key==='Enter')unlock()"
+>
+    <button class="lock-btn" onclick="unlock()">Unlock</button>
+    <div class="lock-err" id="lock-err"></div>
+  </div>
+</div>
+
+<div id="app">
+
+<header class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-eyebrow">JECRC University, Jaipur · School of Engineering</div>
+    <div class="hdr-title">B.Tech CSE <em>Cyber Security</em></div>
+  </div>
+  <div class="hdr-right">
+    <div class="hdr-sub">Course Tracker · 2025–2029</div>
+    <div class="hdr-chips">
+      <span class="chip ec">EC-Council</span>
+      <span class="chip">170 Credits</span>
+      <span class="chip">8 Semesters</span>
+    </div>
+  </div>
+  <button class="dark-btn" id="dark-btn" onclick="toggleDark()" title="Toggle dark mode">&#9728;</button>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sb-label">Semesters</div>
+    <div id="sem-nav"></div>
+  </nav>
+  <main class="main" id="main-content"></main>
+</div>
+
+<script>
+const TODAY = new Date('2026-05-13');
+const SEMS = [
+  {
+    id:1, type:'ODD', year:'Aug–Dec 2025', status:'completed',
+    teaching:87, exam:27, credits:17,
+    courses:[
+      {code:'DEN001C',name:'Communication Skills',ltp:'1-0-0',cr:1,type:'AEC',
+        modules:[
+          {n:'UNIT 1',title:'Basics of Organizational Communication: Role Plays and presentations',topics:'related to different corporate related matters- How to greet, how to deny politely, how to handle different types of problems related to the types of communication, how to avoid grapevine and use it in  a positive manner, how to keep positive mindset during work pressure, Activities to teach Time- management, Following Deadlines etc'},
+          {n:'UNIT 2',title:'Write Dialogue from the different contexts of corporate culture:',topics:'Employee and Employer, Customer and Service Provider, Customer and Product Review,  How to react on Day to day corporate interactions- Memo, Notice, Email, Circular etc'},
+          {n:'UNIT 3',title:'Composition:, Letter Writing, Email Writing, Précis Writing, Essay Writing,',topics:'Practice sessions by using Ms Word- Following the process of Drafting- Redrafting, Proof Reading, Editing etc'},
+          {n:'UNIT 4',title:'Vocabulary Building:  Word Formation from one word form to another,',topics:'Origin of Words,  Affixes, Synonyms, Antonyms- Using video clips and comprehension passages to find out the difference between words, similarity between words, origin of words, neologism concepts etc'},
+          {n:'UNIT 5',title:'Professional and Technical Communication : Drafting  a CV/Resume,',topics:'Practice Sessions on Telephonic  Interview and  Online Interview, Presenting projects, proposals etc through PPT Making, Methodology for Evaluation 1. Internal Assessment (Theory) a) Home Assignments: One from each Unit : 15 Marks b) In Semester Tests (Minimum two) : 30 Marks c) Attendance : 05 Marks 2. Term End (Theory) : 50 Marks 3. Internal Assessment (Lab) (a) Daily Performance in the Lab : 50 Marks 4. Term End (Lab) : 50 Marks Course Articulation Matrix: (Mapping of COs with POs andPSOs) Suggested Reading: A. Practical English Usage. Michael Swan. OUP. 1995 B. Remedial English Grammar. F.T. Wood. Macmillan. 2007 C. Raymond V. Lesikar and Marie E. Flatley. Basic Business Communication, Tata McGraw Hill Pub. Co. New Delhi. 2005. Tenth Edition. D. On Writing Well. William Zinsser. Harper Resource Book. 2001 E. Study Writing. Liz Hamp-Lyons and Ben Heasly. Cambridge University Press. 2006. F. Communication Skills. Sanjay Kumar and PushpLata. Oxford University Press. 2011. G. Exercises in Spoken English. Parts. I-III, Hyderabad. Oxford University Press. H. Syamala, V. Speak English in Four Easy Steps, Improve English Foundation Trivandrum: 2006 I. More Games Teams Play, by Leslie Bendaly, McGraw-Hill Ryerson. J. The BBC and British Council online resources Course Outcome Program Outcome Program Specific Outcome PO1 PO2 PO3 PO4 PO5 PO6 PO7 PSO1 PSO2 PSO3 PSO4 PSO5 PSO6 CO1 3 2 3 2 3 3 2 3 3 CO2 2 3 3 1 2 3 3 3 2 CO3 3 2 1 3 1 3 2 2 3 CO4 2 3 3 2 2 3 3 3 3 CO5 3 3 3 3 3 1 1 3 3 3 B. Tech. (common to all disciplines)-I Semester Contact Hours (L-T-P): 3-1-0 DMA001A Engineering Mathematics-I 3: 1:0        4 OBJECTIVE: The objectives of this course are to make the students:  To increase the student\'s appreciation of the basic role played by mathematics in modern technology.  Incorporate the knowledge of advanced mathematics to support their concurrent and subsequent engineering studies.  To develop the conceptsandtoolsthatwillserve asbuildingblockstowards tacklingmoreadvancedlevelofmathematicsthatthey arelikely tofindusefulintheirprofession whenemployedinthefirm/industry/corporationinpublic or privatesector'},
+          {n:'UNIT 1',title:'Point of inflexion and curve tracing (Cartesian coordinates only), curvature,',topics:'convexity, concavity, point of inflexion and curve tracing.'},
+          {n:'UNIT 2',title:'Limit, continuity and partial derivatives, Euler’s theorem on homogenous',topics:'functions, total derivative, approximate calculations; Maxima and minima of two and more independent variables; Method of Lagrange multipliers.'},
+          {n:'UNIT 3',title:'Beta and Gamma functions and their properties. Surface and volumes of',topics:'solids of revolutions. Double integrals, change of order of integration in double integrals, Change of variables (Cartesian to polar), Applications: areas and volumes.'},
+          {n:'UNIT 4',title:'Vectors',topics:'covering,lawsof vectoralgebra,operations- dot,cross,triple products;Vector function- limits,continuityandderivatives,geometricinterpretation; Gradient,divergenceand cur-formulae.'},
+          {n:'UNIT 5',title:'Lineintegrals,simpleconnectedregions,Lineintegrals,',topics:'surface integrals, volume integral, Green’s theorem, Stokestheorem and Gauss theorem.'}
+        ]
+      },
+      {code:'DEN001D',name:'Communication Skills Lab',ltp:'0-0-2',cr:1,type:'AEC'},
+      {code:'DMA024A',name:'Mathematics I',ltp:'3-1-0',cr:4,type:'Foundation'},
+      {code:'DPH001B',name:'Applied Physics',ltp:'3-0-0',cr:3,type:'Foundation',
+        modules:[
+          {n:'UNIT 1',title:'Introduction to Quantum Mechanics:',topics:'Development of Quantum Mechanics, Compton Scattering, Uncertainty’s Principle, Wave Particle Duality, Phase and Group velocities, Wave Packet, - Physical significance and its properties, Operators, Expectation values. Schrödinger’s time dependent and time independent equations. Applications: Motion of a particle in one-dimensional box and three-dimensional box, Concept of Non-degeneracy and Degeneracy. Qualitative: Quantum Tunnelling (Barrier penetration) - Alpha Decay.'},
+          {n:'UNIT 2',title:'Free Electron Theory and Band Theory of Solids:',topics:'Overview of Drude & Lorentz theory, Quantum (Sommerfield’s) theory of free electrons, Density of energy states, Fermi-Dirac Statistics, Fermi level. Band Theory of solids: Formations of band, Classification of Solids - Energy Band Diagram.'},
+          {n:'UNIT 3',title:'Semiconductor Devices:',topics:'Intrinsic and Extrinsic semiconductors, Carrier concentrations, Position of Fermi levels in semiconductors, Conductivity and Mobility, determination of bandgap, P-N junction diode: Formation, Energy band diagram, Calculation of internal potential barrier, diode equation and V-I characteristics under forward and reverse bias; Zener diode, Varacter diode, LED and Photodiode.'},
+          {n:'UNIT 4',title:'Quantum Optics:',topics:'Laser: Introduction to Coherence; Einstein’s coefficients, relations between Einstein’s coefficients, Threshold conditions for laser action. Solid-Nd-Yag Laser, Ruby laser, Gaseous-He-Ne, CO2 laser, and Semiconductor laser. Holography: Holography versus photography. Construction and re-construction of a Hologram and Applications. Communication: Optical fiber-Construction, Numerical Aperture and Angle of Acceptance, fractional refractive index, types of optical fibres and applications'},
+          {n:'UNIT 5',title:'Electromagnetic Waves',topics:'Scalar and Vector fields, Theorems- Gauss’, Stokes and Gradient; Maxwell’s equations – Differential and Integral Form, Significance of Equations, Ampere’s Law and correction; Wave equation and its solution for free space. Transverse nature of EM waves; Poynting vector and theorem, Applications in communications'}
+        ]
+      },
+      {code:'DCO013A',name:'Computer Programming & Logical Thinking',ltp:'3-0-0',cr:3,type:'Foundation',
+        modules:[
+          {n:'UNIT 1',title:'Introduction and history of AI, Sources of Data, Introduction to AI, A Brief',topics:'History of Data Science, Introduction to Machine Learning, History of AI, categories of ML systems, An Introduction to AI, ML and AI Overlap with Each Other? Applications of ML, Types of Data, Organization of Structured Data, Examples of Structured Data, Expansion of Structured Data, What is Semi- structured Data?'},
+          {n:'UNIT 2',title:'Introduction to Statistics, Classification of Statistical Methods, Descriptive',topics:'Statistics, Inferential Statistics, Scale of Measurements (Nominal, Ordinal, Ratio and Interval), Nominal Scales, Nominal Scales, Ratio Scales, Mean, Median, Mode, Measures of Variability/Spread, range, Quartiles and Interquartile Range, Standard Deviation (SD), Measures of Shape, Skewness, Kurtosis'},
+          {n:'UNIT 3',title:'Principles of Counting, Introduction and Definitions of Probability Theory,',topics:'Conditional Probability, Bayes Theorem, Discrete Probability Distribution, Covariance and Correlation, Continuous Probability Distribution, Central Limit Theorem, Hypothesis Testing'},
+          {n:'UNIT 4',title:'Introduction to Matrices, Matrix Notations and Types, Matrix Equality,',topics:'Operations on Matrices, Determinants, Singularity of a Matrix, Orthogonal Matrix, Elementary Transformations and elementary matrices, Echelon forms and echelon transformations, Matrix Rank and Normal Form of a matrix, Vector Spaces and the axioms, Linear Dependence and Independence of vectors, Consistency of linear system of equations, Eigenvalues and eigenvectors, Cayley Hamilton Theorem, Linear Transformation and Orthogonal transformation, Matrix Factorization and Types'},
+          {n:'UNIT 5',title:'Introduction to Linear Algebra, Notations in Linear Algebra, Important Concepts',topics:'of Linear Algebra, Definitions of Linear Algebra, Introduction to mathematical modeling,  Applications of mathematical modeling, Principles and stages involved in developing a mathematical model, Classification of mathematical modelling, Conceptualizing a mathematical model, Concept of boundary conditions'}
+        ]
+      },
+      {code:'DPH002B',name:'Applied Physics Lab',ltp:'0-0-2',cr:1,type:'Foundation'},
+      {code:'DCO014A',name:'Computer Programming & Logical Thinking Lab',ltp:'0-0-2',cr:1,type:'Foundation',
+        experiments:[
+          'Write a program to print a hello world in c .',
+          'Write a program in c to check even or odd.',
+          'Write a program to find odd numbers in c.',
+          'Write a program to print Armstrong numbers from 1 to 500.',
+          'Write a program for prime numbers between 1 to 100.',
+          'Write a program to check a palindrome number.',
+          'Factorial program in c using for loop',
+          'Write a c program to reverse a given number.',
+          'Write a program to add the two numbers.',
+          'Write a program to swap a  number using a third variable.',
+          'Write a program to implement switch case .',
+          'Write a program to implement Function.',
+          'Write a program to implement Recursive Function.',
+          'Write a program to implement structure in C.',
+          'Write a program to implement UNION in C.',
+          'Write a program to implement ENUM in C.                 Course Objective',
+          'To equip students with hands-on skills in digital tools, data handling, and artificial intelligence.',
+          'Understand how to analyze information and present it using charts, graphs, and    visual tools',
+          'Understand basic digital tools and platforms',
+          'Identify and use digital tools specific to your academic or professional stream.',
+          'Understand what AI is and how it works in everyday life             Course Outcome'
+        ]
+      },
+      {code:'JIC001A',name:'Entrepreneurship Development',ltp:'0-0-2',cr:1,type:'Multi-disciplinary'},
+      {code:'BCO570A',name:'Digital Data and AI Literacy',ltp:'0-0-4',cr:2,type:'SEC',
+        experiments:[
+          'Bhat,  N.D.& M. Panchal (2008), Engineering Drawing, Charotar Publishing House',
+          'James D. Bethune (2015),Engineering Graphics with AutoCAD 2015, Macromedia Press.  Reference Books:  1 Dhawan, R.K. (2'
+        ]
+      },
+      {code:'DCH010A',name:'Environment Education',ltp:'2-0-0',cr:0,type:'VAC'},
+    ]
+  },
+  {
+    id:2, type:'EVEN', year:'Jan–Jun 2026', status:'current',
+    teaching:84, exam:28, credits:18,
+    calendarDates:[
+      {label:'Semester begins',date:'19 Jan 2026',time:new Date('2026-01-19'),dot:'done'},
+      {label:'Classes start',date:'19 Jan 2026',time:new Date('2026-01-19'),dot:'done'},
+      {label:'1st internal exam',date:'9–14 Mar 2026',time:new Date('2026-03-14'),dot:'done'},
+      {label:'Holi break',date:'2–4 Mar 2026',time:new Date('2026-03-04'),dot:'done'},
+      {label:'Annual Fest (Rytham)',date:'5–7 Mar 2026',time:new Date('2026-03-07'),dot:'done'},
+      {label:'2nd internal exam',date:'20–25 Apr 2026',time:new Date('2026-04-25'),dot:'done'},
+      {label:'3rd internal exam',date:'21–23 May 2026',time:new Date('2026-05-21'),dot:'near'},
+      {label:'Classwork ends',date:'23 May 2026',time:new Date('2026-05-23'),dot:'near'},
+      {label:'Practical exams',date:'25–28 May 2026',time:new Date('2026-05-25'),dot:'upcoming'},
+      {label:'End-term exams begin',date:'1 Jun 2026',time:new Date('2026-06-01'),dot:'upcoming'},
+      {label:'End-term exams end',date:'15 Jun 2026',time:new Date('2026-06-15'),dot:'upcoming'},
+      {label:'Semester ends',date:'15 Jun 2026',time:new Date('2026-06-15'),dot:'upcoming'},
+      {label:'Supplementary exams',date:'16–28 Jun 2026',time:new Date('2026-06-16'),dot:'upcoming'},
+      {label:'Result declaration',date:'5 Jul 2026',time:new Date('2026-07-05'),dot:'upcoming'},
+      {label:'Semester break ends',date:'31 Jul 2026',time:new Date('2026-07-31'),dot:'upcoming'},
+      {label:'Semester 3 begins',date:'3 Aug 2026',time:new Date('2026-08-03'),dot:'upcoming'},
+    ],
+    courses:[
+      {code:'DEN002C',name:'Professional Skills',ltp:'1-0-0',cr:1,type:'AEC',
+        modules:[
+          {n:'UNIT 1',title:'Professional Grooming and Professional Culture',topics:'Role plays and Activities on Dressing sense-personal hygiene, Cultural adaptability, Body language components: undesirable and desirable body language, Team-ship, Leadership, Stress and Conflict management'},
+          {n:'UNIT 2',title:'Advanced Grammar',topics:'Exercise Sessions forCommon errors related to prepositions, articles, models, Conditionals, Determiners etc, Punctuation, Proof-reading and Editing of Documents'},
+          {n:'UNIT 3',title:'Composition',topics:'Memo, Notice, Circular, Book Review, Research Article, Reports - Giving Assignments based on practical applications, Practice sessions on different topics'},
+          {n:'UNIT 4',title:'Vocabulary Building',topics:'Words often misspelt, One Word Substitution, Phrasal Verbs, Idioms- Activities related to the appropriate use of words'},
+          {n:'UNIT 5',title:'Reading Comprehension',topics:'Practice Reading Unseen Paragraphs- Finding Suitable title, Summarizing, Analyzing, Finding new words etc'}
+        ]
+      },
+      {code:'DEN002D',name:'Professional Skills Lab',ltp:'0-0-2',cr:1,type:'AEC',
+        experiments:[
+          'To be conducted as per the Professional Skills syllabus and practical applications.'
+        ]
+      },
+      {code:'DMA025A',name:'Mathematics II',ltp:'3-1-0',cr:4,type:'Foundation',
+        modules:[
+          {n:'UNIT 1',title:'Matrices and Linear Equations',topics:'Introduction, Elementary row and column transformations, Linear dependence, Consistency of linear system of equations, Inverse of a matrix, Rank of a Matrix, System of linear equations (Homogenous and Non-homogeneous); Eigenvalues and eigenvectors, Cayley Hamilton theorem.'},
+          {n:'UNIT 2',title:'Sequence and Series',topics:'Convergence of sequence and series, tests for convergence, power series, Taylor\'s series. Series for exponential, trigonometric and logarithmic functions.'},
+          {n:'UNIT 3',title:'Ordinary Differential Equations',topics:'Ordinary differential equation (first order first degree), Homogenous differential Equation, Linear differential equation, Exact differential equation, Higher order linear differential equation with constant coefficients.'},
+          {n:'UNIT 4',title:'Linear Equations with Variable Coefficients',topics:'Homogenous form, Exact form, Change of dependent variable, Normal form, Change of independent variable and method of variation of parameters.'},
+          {n:'UNIT 5',title:'Series Solutions and PDEs',topics:'Series solutions of second order linear differential equations with variable coefficients (Complementary functions only). First order partial differential equations, solutions of first order linear and non-linear PDEs.'}
+        ]
+      },
+      {code:'DCO001B',name:'Computer Programming in C++',ltp:'2-0-0',cr:2,type:'Foundation',
+        modules:[
+          {n:'UNIT 1',title:'C++ Overview',topics:'Characteristics, Object-Oriented Terminology, Polymorphism, encapsulation, inheritance, Abstract Data Types, I/O Services, Functions and Variables. Declaration and Definition.'},
+          {n:'UNIT 2',title:'Classes and Encapsulation',topics:'Variables: Dynamic Creation and Derived DataClasses in C++, Defining Classes in C++, Classes and Encapsulation, Member Functions, Friend function, Inline function'},
+          {n:'UNIT 3',title:'Constructors and Destructors',topics:'Using Constructors, Using Destructors to Destroy Instances, Operator Overloading: operator overloading of unary and binary operator, Function Overloading, Working with Overloaded Operator Methods'},
+          {n:'UNIT 4',title:'Inheritance',topics:'Constant and Static Class Members, Inheritance, Overview of Inheritance, Defining Base and Derived Classes, Single, Multiple, multilevel, hybrid hierarchical inheritance, virtual function, virtual base class'},
+          {n:'UNIT 5',title:'Input and Output',topics:'Input and Output in C++ Programs, Standard Streams, Manipulators, Unformatted Input and Output. Working with files.'}
+        ]
+      },
+      {code:'DCO002B',name:'Computer Programming in C++ Lab',ltp:'0-0-4',cr:2,type:'Foundation',
+        experiments:[
+          'C++ Program to Add Two Matrix Using Multi-dimensional Arrays.',
+          'Write a C++ program to demonstrate the use of scope resolution operator.',
+          'Write a program for understanding of C++ program structure without any CLASS declaration.',
+          'Write a Program to Understand Structure & Unions.',
+          'Write a program in C++ to define class Person having multiple data members for storing the different details of person.',
+          'Write a C++ program to demonstrate concept of declaration of class with public & private member, constructors, object creation using constructors.',
+          'Write a Program, involving multiple classes (without inheritance) to accomplish a task demonstrate composition of class.',
+          'Write a Program to Demonstrate Friend function and bridging gap of two classes using friend function.',
+          'Write a program to demonstrate use of friend class in c++.',
+          'Write a Program to Demonstrate Inline functions.',
+          'Write a Program to Demonstrate pointers to derived classes.',
+          'Write a Program to demonstrate dynamic memory management using new & delete & static class members.',
+          'Write a Program to demonstrate an operator overloading.',
+          'Write a Program to demonstrate use of protected members, public & private protected classes, multilevel inheritance etc.',
+          'Write a Program for multiple inheritance, virtual functions, virtual base classes, abstract classes.',
+          'Write a C++ program to demonstrate order of invocation of constructor and destructor in multiple inheritance.',
+          'Write a C++ program to show the order of constructor call in single inheritance.',
+          'Write a Program to Demonstrate use different type of Constructors and Destructors in single inheritance.',
+          'Write a C++ program that demonstrates the concept of function overriding.',
+          'Write a C++ program to swap data using function templates.',
+          'Write a program to demonstrate the use of pure virtual functions and abstract class.'
+        ]
+      },
+      {code:'BCO506A',name:'Introduction to Linux Lab',ltp:'0-0-2',cr:1,type:'Foundation',ec:false,
+        cos:[
+          'Identify and use UNIX/Linux utilities',
+          'Effectively use the UNIX/Linux system for personal, office, technical, and software development tasks',
+          'Understand the concepts of process and related commands',
+          'Describe the basic file system in Linux and its file attributes',
+          'Understand the commands related to Shell programming',
+        ],
+        experiments:[
+          'Comparison between Linux and other Operating Systems; Applications of Linux OS',
+          'Linux Architecture: Shell, Kernel, System calls',
+          'Internal & External commands: echo, type, ls, cp, mv, rm, cat, clear, who, cal, date, bc, man, passwd',
+          'Working with files & directories: pwd, mkdir, rmdir, cd, ls, cat, cp, mv, rm, diff, tar, umask, wc',
+          'File attributes: listing with ls, absolute/relative permissions, chmod, chown, hard-link & soft-link with ln',
+          'vi editor: three modes — input mode, command mode, Ex mode',
+          'Process management: creation, status, ps, background jobs, job control, process termination, scheduling (sleep, wait)',
+          'Introduction to Shell programming',
+        ]
+      },
+      {code:'DCO018A',name:'Advance Excel',ltp:'0-0-4',cr:2,type:'SEC',
+        modules:[
+          {n:'Module 1',title:'Excel Basics & Formatting',topics:'Interface, Cell Referencing, Data Entry, AutoFill, Formatting Cells, Conditional Formatting, Find, Replace, Data Sorting'},
+          {n:'Module 2',title:'Functions and Formulas',topics:'Basic Functions (SUM, AVERAGE, MIN, MAX, COUNT), Conditional Functions (IF, Nested IF), Logical Functions (AND, OR, NOT), Lookup Functions (VLOOKUP, HLOOKUP), Text Functions'},
+          {n:'Module 3',title:'Data Analysis Tools',topics:'Date and Time Functions, Data Validation, Sorting and Filtering, Charts, Creating and Using Pivot Tables and Pivot Charts'},
+          {n:'Module 4',title:'Advanced Excel Usage',topics:'Named Ranges, What-If Analysis (Goal Seek and Data Tables), Scenario Manager and Solver Tool, Data Consolidation and Subtotals, Macros for Automation'},
+          {n:'Module 5',title:'Capstone Excel Projects',topics:'Create a Dashboard with Linked Charts and KPIs, Prepare a Sales Report with Pivot Table Analysis, Design a Student Marksheet, Final Project: Prepare and Present a Business Report'}
+        ]
+      },
+      {code:'—',name:'Human Values & Professional Ethics in HEI',ltp:'2-0-0',cr:2,type:'VAC',syl:'common'},
+      {code:'DCO006A',name:'Engineering Workshop',ltp:'0-0-2',cr:1,type:'Foundation',
+        experiments:[
+          'Introduction to PC Hardware: RAM, ROM, Motherboard, SMPS, Processor',
+          'Hardware installation and assembly of PC (Desktop, Laptop)',
+          'PC debugging, troubleshooting and Maintenance',
+          'Software installation and Configuration: Operating System, Basic utility and maintenance software',
+          'Working and functioning of different Buses, I/O Ports, graphic cards',
+          'Installation of printer / modem /scanner and other input and output devices',
+          'Configuring BIOS set up, Recovery, Preventive maintenance & Anti-Virus',
+          'Study of different types of Network cables and Practically implement the cross-wired cable and straight through cable',
+          'Configuring and Practically implement Network Devices (Repeater, Hub, Switch, Bridge, Router, Gate Way)',
+          'Install and Configure Wired and Wireless NIC and transfer files between systems in LAN and Wireless LAN',
+          'Connect the computers in Local Area Network',
+          'Transfer files between systems in LAN using FTP Configuration, install Print server in a LAN',
+          'Installation of Ms Office 200x'
+        ]
+      },
+      {code:'DLW001A',name:'Indian Constitution',ltp:'2-0-0',cr:0,type:'VAC',
+        modules:[
+          {n:'1',title:'Salient Features of the Indian Constitution',topics:'General features of the Constitution'},
+          {n:'2',title:'Preamble of the Constitution',topics:'Preamble understanding'},
+          {n:'3',title:'Nature of the Constitution',topics:'Nature and basic structure'},
+          {n:'4',title:'Fundamental Rights',topics:'Articles 12 & 13, Articles 14 to 18, Articles 19, Articles 21, Articles 32 and Writs'},
+          {n:'5',title:'Directive Principles and Fundamental Duties',topics:'General overview of DPSP and Fundamental Duties'}
+        ]
+      },
+      {code:'BCO173B',name:'Certified Secure Computer User',ltp:'2-0-0',cr:2,type:'Core',ec:true,
+        cos:[
+          'Understand the need and importance of data security',
+          'Ability to implement Operating System security measures',
+          'Understand threats associated with email communications and safeguarding against them',
+          'Make informed decisions for securing cloud, mobile devices, and network connections',
+          'Knowledge of Data Backup and Disaster Recovery',
+        ],
+        modules:[
+          {n:'M1',title:'Introduction to Data Security',topics:'Digital building blocks, importance of data, threats to data, potential losses due to security attacks, implementing security'},
+          {n:'M2',title:'Securing Operating Systems',topics:'Guidelines to secure Windows; guidelines to secure Mac OS X'},
+          {n:'M3',title:'Malware and Antiviruses',topics:'Types of malware, symptoms of infection, antivirus software, configuring and testing antivirus'},
+          {n:'M4',title:'Internet Security',topics:'Web browser concepts, instant messaging security, child online safety'},
+          {n:'M5',title:'Security on Social Networking Sites',topics:'Social networking concepts, security threats, Facebook and Twitter security settings'},
+          {n:'M6',title:'Securing Email Communications',topics:'Email security concepts, threats to email, email security procedures'},
+          {n:'M7',title:'Securing Mobile Devices',topics:'Mobile device security, threats, security procedures for iPhone, iPad, Android, Windows devices, mobile security tools'},
+          {n:'M8',title:'Securing the Cloud',topics:'Cloud concepts, how cloud works, threats to cloud security, privacy issues, choosing a cloud service provider'},
+          {n:'M9',title:'Securing Network Connections',topics:'Networking concepts, wireless setup on Windows/Mac, threats to wireless security, countermeasures'},
+          {n:'M10',title:'Data Backup and Disaster Recovery',topics:'Backup concepts, types of backups, Windows and macOS backup procedures, secure data destruction'},
+        ]
+      },
+    ]
+  },
+  {
+    id:3, type:'ODD', year:'Aug–Dec 2026', status:'upcoming', credits:29,
+    courses:[
+      {code:'BCO011B',name:'Computer Networks',ltp:'3-0-0',cr:3,type:'Core',
+        modules:[
+          {n:'UNIT 1',title:'Introduction: Hardware and software, Data communication, Networking, Protocols',topics:'and standards. Data transmission concepts. Analog and digital transmission. Transmission impairments. Layered Architecture of Computer Networks, OSI and TCP/IP architectures Physical Layer - Guided transmission media and wireless transmission,Data communication interface - asynchronous and  synchronous transmission, Multiplexing'},
+          {n:'UNIT 2',title:'Link Layer :Medium Access Control- CDMA, ALOHA, and Ethernet; Link Layer',topics:'Addressing and Forwarding; The Channel Allocation Problem,  Multiple Access Protocols, Ethernet, Wireless LANs, Broadband Wireless, Bluetooth,  Data Link Layer Switching, Switched networks. Circuit-switched networks, switching  concepts, Control signaling. Packet switching  principles, Flow control, Error detection and error control. HDLC and other data  link protocols.'},
+          {n:'UNIT 3',title:'Network Layer: Network layer design issues, Routing algorithms- Flooding, Shortest',topics:'path routing, Distance-Vector, Path Vector routing, OSPF routing,, Intra-Domain Routing:  Link- State, Hierarchical routing, Broadcast and multicast  routings, Routing in the Internet, The network  layer in the Internet: IP protocol, ARP and RARP, BOOTP, ICMP, DHCP, Network  Address Translation(NAT),  Internetworking'},
+          {n:'UNIT 4',title:'Transport Layer: TCP introduction, Reliable/Un- Reliable Transport, TCP, UDP,',topics:'Congestion Control, Wireless Networks: 802.11 MAC, Efficiency considerations'},
+          {n:'UNIT  5',title:'Application Layer: DNS-The Domain Name System, Electronic Mail, HTTP, FTP,',topics:'Simple network management protocol (SNMP), The World Wide Web'}
+        ]
+      },
+      {code:'BCO002B',name:'Data Structures and Algorithms',ltp:'3-1-0',cr:4,type:'Core',
+        modules:[
+          {n:'UNIT 1',title:'Introduction: Notions of data type, abstract data type and data structures.',topics:'Importance of algorithms and data structures in programming. Notion of Complexity covering time complexity, space complexity, Worst case complexity & Average case complexity. BigOh Notation, Omega notation, Theta notation. Examples of simple algorithms and illustration of their complexity. Sorting- Bubble sort, selection sort, insertion sort, Quick sort; Heap sort; Merge sort; Analysis of the sorting methods. Selecting the top k elements. Lower bound on sorting.'},
+          {n:'UNIT 2',title:'Stack ADT, Infix Notation, Prefix Notation and Postfix Notation. Evaluation of',topics:'Postfix Expression, conversion of Infix to Prefix and Postfix Iteration and Recursion- Problem solving using iteration and recursion with examples such as binary search, Fibonacci numbers, and Hanoi towers. Tradeoffs between iteration and recursion.'},
+          {n:'UNIT 3',title:'List ADT. Implementation of lists using arrays and pointers. Stack ADT. Queue',topics:'ADT. Implementation of stacks and queues. Dictionaries, Hash tables: open tables and closed tables. Searching technique- Binary search and linear search, link list- single link list, double link list, Insertion and deletion in link list.'},
+          {n:'UNIT 4',title:'Binary Trees- Definition and traversals: preorder, post order, in order. Common',topics:'types and properties of binary trees. Binary search trees: insertion and deletion in binary search tree worst case analysis and average case analysis. AVL trees. Priority Queues -Binary heaps: insert and delete min operations and analysis.'},
+          {n:'UNIT 5',title:'Graph: Basic definitions, Directed Graphs- Data structures for graph',topics:'representation. Shortest path algorithms: Dijkstra (greedy algorithm) and Operations on graph, Worshall’salgorithm , Depth first search and Breadth-first search. Directed acyclic graphs. Undirected Graphs, Minimal spanning trees and algorithms (Prims and Kruskal) and implementation. Application to the travelling salesman problem.'}
+        ]
+      },
+      {code:'BAS007B',name:'Discrete Mathematics',ltp:'3-0-0',cr:3,type:'Foundation',
+        modules:[
+          {n:'UNIT 1',title:'Sets: Definition and types, Set operations, Partition of set, Cardinality (Inclusion-',topics:'Exclusion & Addition Principles), Recursive definition of set. Functions: Concept, Some Special Functions (Polynomial, Exponential & Logarithmic, Absolute Value, Floor & Ceiling, Mod &Div Functions), Properties of Functions, Cardinality of Infinite Set, Countable & Uncountable Sets,'},
+          {n:'UNIT 2',title:'Graph Theory: Graphs – Directed, Undirected, Simple,. Adjacency & Incidence,',topics:'Degree of Vertex, Subgraph, Complete graph, Cycle & Wheel Graph, Bipartite & Complete Bipartite Graph, Weighed Graph, Union of Simple Graphs. Complete Graphs. Isomorphic Graphs, Path, Cycles & Circuits Euclerian& Hamiltonian Graphs. Planar Graph: Kuratowski’s Two Graphs, Euler’s Formula, Kuratowski’s Theorem. Trees: Spanning trees- Kruskal’sAlgo, Finding Spanning Tree using Depth First Search, Breadth First Search, Complexity of Graph, Minimal Spanning Tree.'},
+          {n:'UNIT 3',title:'Semigroups, Groups and Coding: Binary Operations, Semigroups, Products and',topics:'Quotients of Semigroups, Groups, Product and Quotients of Groups, Coding of Binary Information and Error Correction, Decoding and Error Correction. Language of Logic: Proposition, Compound Proposition, Conjunction, Disjunction, Implication, Converse, Inverse &Contrapositive, Biconditional Statements, tautology, Contradiction & Contingency, Logical Equivalences, Quantifiers, Arguments.'},
+          {n:'UNIT 4',title:'Proof Methods: Vacuous, Trivial, Direct, Indirect by Contrapositive and',topics:'Contradiction, Constructive & Non-constructive proof, Counterexample. The Division Algorithm, Divisibility Properties (Prime Numbers & Composite Numbers), Principle of Mathematical Induction, The Second Principle of Mathematical Induction, Fundamental Theorem of Arithmetic. Algorithm Correctness: Partial Correctness, Loop Invariant. Testing the partial correctness of linear & binary search, bubble & selection sorting.'},
+          {n:'UNIT 5',title:'Relations: Boolean Matrices, Binary Relation, Adjacency Matrix of Relation,',topics:'Properties of Relations, Operations on Relations, The Connectivity Relations, Transitive Closure-Warshall’s Algorithm, Equivalence relations- Congruence Relations, Equivalence Class, Number of Partitions of a Finite Set, Partial & Total Orderings.'}
+        ]
+      },
+      {code:'BCO001B',name:'Software Engineering',ltp:'3-0-0',cr:3,type:'Foundation',
+        modules:[
+          {n:'UNIT 1',title:'Introduction- Introduction to Software Engineering, Software Components,',topics:'Software Characteristics, Software Crisis, Engineering aspects of Software production – necessity of automation .Job responsibilities of Programmers and Software Engineers as Software developers.Software Development Life Cycle (SDLC)'},
+          {n:'UNIT 2',title:'Process Models and Program Design Techniques- Software Development Process',topics:'Models – Code & Fix model, Waterfall model, Incremental model, Rapid Prototyping model, Spiral (Evolutionary) model.Software Requirement Specifications (SRS), Management of User Needs,  Data Flow Diagrams, Entity Relationship Diagrams, Decision Tables, SRS Document, Design Techniques – Structured Programming, Coupling and Cohesion, Abstraction and Information Hiding, SoftwareModeling Tools –Data flow Diagrams, UML and XML.'},
+          {n:'UNIT 3',title:'Software Testing: Testing Objectives, Unit Testing, Integration Testing, Acceptance',topics:'Testing, Regression Testing, Verification and Validation: Testing of Software Products – Black-Box Testing and White-Box Testing, Static Analysis, Symbolic Execution and Control Flow Graphs –Cyclomatic Complexity.'},
+          {n:'UNIT 4',title:'Software Project Management: Management Functions and Processes, Project',topics:'Planning and Control, Organization and Intra-team Communication, Risk Management. Software Cost Estimation – underlying factors of critical concern. Metrics for estimating costs of software products – Function Points. Techniques for software cost estimation –Expert judgment, Work break-down structure and Process breakdown structure, COCOMO and COCOMO-II.'},
+          {n:'UNIT 5',title:'Software Maintenance,Need for Maintenance, Categories of Maintenance, An',topics:'Overview of CASE Tools.'}
+        ]
+      },
+      {code:'BCO008B',name:'Operating Systems',ltp:'3-0-0',cr:3,type:'Core',
+        modules:[
+          {n:'UNIT 1',title:'Introduction : Operating system and functions, Classification of Operating systems-',topics:'Batch, Interactive, Time sharing, Real Time System, Multiprocessor Systems, Multiuser Systems, Multiprocess Systems, Multithreaded Systems, Operating System Structure- Layered structure, System Components, Operating System services, Monolithic and Microkernel Systems.'},
+          {n:'UNIT 2',title:'Process Management-Process & Threads – Process States - Process Control Block',topics:'– Process Scheduling – Operations on Processes, Threads, CPU Scheduler – Preemptive and Non- Preemptive; Dispatcher, Scheduling Criteria, Scheduling Algorithms – Process Management in UNIX'},
+          {n:'UNIT 3',title:'Process Synchronization & Inter process Communication-Concurrent Processes,',topics:'Co-operating Processes, Precedence Graph, Hierarchy of Processes, Critical Section Problem – Two process solution, Synchronization Hardware, Semaphores – Deadlock- detection, handling, prevention, avoidance, recovery, Starvation, Critical Regions, Monitors, Inter process communication'},
+          {n:'UNIT 4',title:'Memory Management-Objectives and functions, Simple Resident Monitor Program',topics:'(No design), Overlays – Swapping; Schemes – Paging – Simple, Multi-level Paging; Internal and External Fragmentation; Virtual Memory Concept, Demand Paging – Page Interrupt Fault, Page Replacement Algorithms; Segmentation – Simple, Multi-level, Segmentation with Paging, Memory Management in UNIX.'},
+          {n:'UNIT 5',title:'I/O Management and Disk Scheduling: I/O devices, and I/O subsystems, I/O',topics:'buffering, Disk storage and disk scheduling. File System: File concept, File organization and access mechanism, File directories, and File sharing, File system implementation issues, File system protection and security.'}
+        ],
+        experiments:[
+          'Write a program to implement following searching algorithms using array data structure',
+          '1 Matrix Addition and Subtraction',
+          '2 Matrix Multiplication and Transpose',
+          'Write a program to implement following searching algorithms using array data structure',
+          'Linear Search',
+          'Binary Search',
+          'Write a program to implement following searching algorithms using array data structure',
+          'Insertion Sort',
+          '2 Bubble Sort',
+          'Write a program to implement following searching algorithms using array data structure',
+          'Selection Sort',
+          '2  Quick Sort',
+          'Write a program to implement following operations on stack using array data structure.',
+          '1 Traversing',
+          '2 Push',
+          'Write a program to implement following examples of recursion',
+          '1 Fibonacci Series',
+          '2 Factorial Function',
+          '3 Tower of Hanoi',
+          'Write a program to implement Merge Sort.',
+          'Write a program to implement following operations on Queue using array data structure.',
+          '1 Insertion',
+          '2 Deletion',
+          '3 Traversing',
+          'Write a program to implement Postfix evaluation.',
+          'Write a program to implement Infix to Postfix Notation.',
+          'Write a program to implement following operations on Link List data structure.',
+          '1 Insertion at beginning',
+          '2 Insertion at last',
+          '3 Insertion at any location',
+          'Write a program to implement following operations on Link List data structure.',
+          '1 Deletion at beginning',
+          '2 Deletion at last',
+          '3 Deletion at any location',
+          'Write a program to implement Doubly Link List',
+          '1 Insertion',
+          '2 Traversing',
+          'Write a program to implement Breadth First Search Algorithm.',
+          'Write a program to implement Depth First Search Algorithm.'
+        ]
+      },
+      {code:'BCO005B',name:'Data Structure and Algorithms Lab',ltp:'0-0-2',cr:1,type:'Core'},
+      {code:'BCO014B',name:'Operating Systems Lab',ltp:'0-0-2',cr:1,type:'Core'},
+      {code:'BCO594A',name:'Computer Networks Lab',ltp:'0-0-2',cr:1,type:'Core'},
+      {code:'DBA112A',name:'Leadership and Management Skills',ltp:'2-0-0',cr:2,type:'AEC'},
+      {code:'BCO610A',name:'Prompt Engineering for C and C++',ltp:'0-0-4',cr:2,type:'SEC'},
+      {code:'—',name:'IKS Basic Course',ltp:'2-0-0',cr:2,type:'VAC'},
+      {code:'BCO339A',name:'EC-Council Certified Security Specialist',ltp:'4-0-0',cr:4,type:'Core',ec:true},
+    ]
+  },
+  {
+    id:4, type:'EVEN', year:'Jan–Jun 2027', status:'upcoming', credits:26,
+    courses:[
+      {code:'—',name:'Open Elective I',ltp:'3-0-0',cr:3,type:'Multi-disciplinary'},
+      {code:'BCO081C',name:'Python Programming',ltp:'2-0-0',cr:2,type:'Core'},
+      {code:'BCO009B',name:'Computer Organization and Design',ltp:'3-0-0',cr:3,type:'Core',
+        modules:[
+          {n:'UNIT 1',title:'Introduction to number system, methods of base conversions; Binary, octal and',topics:'hexadecimal arithmetic; Basic organization of computers; logic gates, Information representation, Fixed-Point Arithmetic: Floating point representation (Single &double precision), Complements.'},
+          {n:'UNIT 2',title:'Using Karnaugh map methods, SOP, POS simplification, Logic design: Half',topics:'adder, full adder, Adder–Subtractor. Multiplexer/ de-multiplexer, decoders. Fetch, decode and execute cycle. RTL, Bus & Memory Transfer, Tri state Buffer.'},
+          {n:'UNIT 3',title:'Instruction set architectures, addressing modes, instruction cycles, Differentiate',topics:'RISC versus CISC architectures. Arithmetic Micro-operation: Addition, Subtraction, Multiplication (Booth’s Algorithm),Array Multiplier'},
+          {n:'UNIT 4',title:'Memory Technology, static and dynamic memory, Random Access and Serial',topics:'Access Memories, Cache memory and Memory Hierarchy, Address Mapping, Cache updation schemes,'},
+          {n:'UNIT 5',title:'I/O subsystems: Interfacing with IO devices, keyboard and display interfaces;',topics:'Basic concepts Bus Control, Read Write operations, Programmed IO, Concept of handshaking, Polled and Interrupt-driven I/O, DMA data transfer.'}
+        ]
+      },
+      {code:'BCO010C',name:'Database Management Systems',ltp:'3-1-0',cr:4,type:'Core',
+        modules:[
+          {n:'UNIT 1',title:'Introduction - Database Systems versus File Systems, View of Data, Data Models,',topics:'database languages, Database Users and Administrators. Transaction Management, Components of a Database management System. Entity-Relationship Model – Basic Concepts, Constraints, Keys, Design Issues, E-R Diagrams.'},
+          {n:'UNIT 2',title:'Relational Database Design- Functional Dependencies, Multi-valued Dependencies,',topics:'Normal Forms, Decomposition into Normalized Relations.'},
+          {n:'UNIT 3',title:'Relational Model- Structures of relational databases, Integrity Constraints, Logical',topics:'database Design, Tables, Views, Data Dictionary. Relational Algebra, Relational Calculus. SQL – Basic Structures, Query Handling,Triggers,Nested SQL Query, Embedded SQL,'},
+          {n:'UNIT 4',title:'Fundamental Concepts of Transaction Management, ACID property. Serializability',topics:'and testing for serializability, concurrency control schemes, lock-based protocols, two-phase locking protocols, graph-based protocols, time stamp-based protocols, deadlocks.'},
+          {n:'UNIT 5',title:'File System: File organization- Heap File, Sequential File, Hash File, Clustered file,',topics:'file operations, indexing, B-tree, B+ tree, Introduction to Data Mining, Data Farming, Data Warehousing'},
+          {n:'UNIT 1',title:'Introduction, Singular Value Decomposition, SVD code:, Principal Component Analysis',topics:'(PCA), Isometric Maps (Isomaps), Multidimensional Scaling (MDS), ISOMAPS with MDS, ISOMAPS (Code), Visualizing the ISOMAPS Data, Applying PCA on the Same Data, Visualization of PCA, Feature Selection Techniques, Wrapper Method'},
+          {n:'UNIT 2',title:'What is Clustering and Why is it Important?, Techniques in Clustering, K-Means',topics:'Clustering, Steps for K-Means Algorithms, Density Based Spatial Clustering (DBSCAN), Types of Points in DBSCAN, DBSCAN Example, DBSCAN: Advantages, DBSCAN: Disadvantages, Hierarchical Clustering, Dendrograms, Hierarchical Clustering Code, DBSCAN Dendrogram Visualization'},
+          {n:'UNIT 3',title:'Introduction to Neural Networks, Types of Neural Networks, Perceptron, Limitations of',topics:'Perceptron, Activation Functions, Types of Activation Functions, Linear Activation Function, Non- Linear Data, Non-Linear Activation Function (Sigmoid ), Non- Linear Activation Function (TanH), Non-Linear Activation Function (ReLu), Non-Linear Activation Function (Leaky ReLu), Derivative of Activation FunctionsNeural Networks, Feed Forward Network, ANN Forward Propagation, Flow of Data in ANN, Backpropagation, Cost Function in Backpropagation, ANN Evaluation, Complete Flow of Data in Neural Network, ANN Training ANN Design, Dropout in Neural Networks'},
+          {n:'UNIT 4',title:'Understanding Images, Need of Convolution Neural Network Convolution, Neural',topics:'Network Working, Working of CNN with Kernel, Understanding Convolution Mathematically, An Example of CNN, Convolution of Images, Convolution Neurons Visualization, Parameters for Feature Maps, Activation Function in Convolution Neural Network, Pooling Step, Advantages of Pooling, Batch Normalization, Typical Convolution Neural Network, Training CNN using Backpropagation, Steps for CNN Backpropagation, Example of Convolution Neural Network Architecture, Visualization of Convolutional Neural Networks,'},
+          {n:'UNIT 5',title:'Using MLP instead of RNN, Recurrent Neural Network (RNN), Steps in Recurrent',topics:'Neuron, RNN Mathematically, Example of Forward Propagation for RNN, Back Propagation in Recurrent Neural Network, Steps for Back Propagation, Applications of RNN, Limitations of RNN, LSTM Conveyor Belt Analogy, Architecture of LSTM, Gates in LSTM, Forget Gate, Input Gate, Output Gate'}
+        ]
+      },
+      {code:'BCO094B',name:'Google Cloud Computing Fundamentals / Salesforce Administrator Lab',ltp:'0-0-2',cr:1,type:'Core'},
+      {code:'BCO013B',name:'Database Management Systems Lab',ltp:'0-0-2',cr:1,type:'Core'},
+      {code:'BCO082C',name:'Python Programming Lab',ltp:'0-0-4',cr:2,type:'Core'},
+      {code:'—',name:'Universal Human Value',ltp:'2-0-0',cr:2,type:'AEC'},
+      {code:'BCO612A',name:'Competitive Coding using AI (DSA)',ltp:'0-0-4',cr:2,type:'SEC',
+        modules:[
+          {n:'UNIT 1',title:'FINITE AUTOMATA (FA): Introduction, Deterministic Finite Automata (DFA) -',topics:'Formal definition, simpler notations (state transition diagram, transition table), language of a DFA. Nondeterministic Finite Automata (NFA)- Definition of NFA, language of an NFA, Equivalence of Deterministic and Nondeterministic Finite Automata, Applications of Fin'}
+        ],
+        experiments:[
+          'For example: “FF” in base X = 16 (Hexadecimal) is “255” in  base Y1 = 10 (Decimal) and “11111111” in base Y2 = 2 (binary). (More  details in Section',
+          '2).  II.  Given a list of integers L of size up to 1M items, determine whether a value  v exists in L by not using more than 20 comparisons? (More details in Section',
+          '1).  III.  Given a date, determine what is the day (Monday, Tuesday, . . ., Sunday) of  that date? (e.g., 9 August 2010 – the launch date of the first edition of this  book – is Monday).  IV.  Given a string, replace all ‘special words’ of length 3 with 3 stars “***”. The  ‘special word’ starts with a lowercase alphabet character and followed by two  consecutive digits, e.g.  S = “line: a70 and z72 will be replaced, but aa24 and a872 will not” will be  transformed to  S = “line: *** and *** will be replaced, but aa24 and a872 will not”.  2  Write the shortest possible code to read in a double (e.g.',
+          '324547327,  etc) and print it again, but now with minimum field width 7 and 3 digits after decimal  point (e.g. ss',
+          '473 (where ‘s’ denotes a space), s',
+          '325, etc).  3  Generate all possible permutations of {0, 1, 2, . . ., N-1}, for N =',
+          '4  Generate all possible subsets of {0, 1, 2, . . ., N-1}, for N =',
+          '5  Implement an algorithm that computes the length of the Longest Common  Subsequence (LCS) between two given strings.  6  Design and implement a program that generates and displays all prime numbers  within a specified range.  7  Develop a program that counts the number of words in a given line of text, where  a word is defined as a sequence of alphabetic characters (A–Z, a–z).  8  Implement a program that repeatedly sums the digits of a given integer until a  single-digit result (known as the digital root) is obtained.  9  Develop a program that checks whether a given square matrix is symmetric about  its main diagonal and contains only non-negative elements.  10  Write a program that simulates the process of generating anagrams of a word  using a stack-based operation model.   11  Given a graph represented by an Adjacency Matrix, transpose it (reverse the  direction of each edge). How to do the same with Adjacency List?  12  Determine whether a given sequence of non-negative integers can represent the  degree sequence of a simple undirected graph.  13  Write a code that takes in a Directed Graph and then convert it into a Directed  Acyclic Graph (DAG).  14  To simulate the logic behind the classic game Minesweeper by writing a program  that processes a minefield grid and calculates the number of adjacent mines for  each empty cell.  15  Write a program to implement Tic-Tac-Toe game.'
+        ]
+      },
+      {code:'—',name:'IKS Elective Course',ltp:'2-0-0',cr:2,type:'VAC'},
+      {code:'BCO340A',name:'Certified Network Defender',ltp:'4-0-0',cr:4,type:'Core',ec:true},
+    ]
+  },
+  {
+    id:5, type:'ODD', year:'Aug–Dec 2027', status:'upcoming', credits:29,
+    courses:[
+      {code:'BCO017A',name:'Formal Languages & Automation Theory',ltp:'3-1-0',cr:4,type:'Core'},
+      {code:'BCO023A',name:'Design & Analysis of Algorithms',ltp:'3-1-0',cr:4,type:'Core'},
+      {code:'BCO652A',name:'Introduction to Cyber Crimes & Law',ltp:'3-0-0',cr:3,type:'Core',ec:true},
+      {code:'BCO434A',name:'Information Security',ltp:'3-0-0',cr:3,type:'Core',ec:true},
+      {code:'BCO074B',name:'Minor Project',ltp:'0-0-8',cr:4,type:'Core'},
+      {code:'—',name:'Open Elective II',ltp:'3-0-0',cr:3,type:'Multi-disciplinary'},
+      {code:'BCO025B',name:'Design & Analysis of Algorithms Lab',ltp:'0-0-2',cr:1,type:'Core'},
+      {code:'BCO435A',name:'Information Security Lab',ltp:'0-0-2',cr:1,type:'Core',ec:true},
+      {code:'BCO571A',name:'Prompt Engineering with Java and Python',ltp:'0-0-4',cr:2,type:'SEC'},
+      {code:'BCO319A',name:'Certified Ethical Hacker',ltp:'4-0-0',cr:4,type:'Core',ec:true},
+    ]
+  },
+  {
+    id:6, type:'EVEN', year:'Jan–Jun 2028', status:'upcoming', credits:22,
+    courses:[
+      {code:'BCO028A',name:'Compiler Construction',ltp:'3-1-0',cr:4,type:'Core'},
+      {code:'BCO188A',name:'Cyber Forensics & Investigation',ltp:'3-0-0',cr:3,type:'Core',ec:true},
+      {code:'BCO189A',name:'Web and Android Security',ltp:'3-0-0',cr:3,type:'Core',ec:true},
+      {code:'BCO007A',name:'Computer Graphics',ltp:'3-0-0',cr:3,type:'Core'},
+      {code:'BCO031B',name:'Compiler Design Lab',ltp:'0-0-2',cr:1,type:'Core'},
+      {code:'BCO461A',name:'Web and Android Security Lab',ltp:'0-0-2',cr:1,type:'Core',ec:true},
+      {code:'BCO015B',name:'Computer Graphics Lab',ltp:'0-0-2',cr:1,type:'Core'},
+      {code:'—',name:'Open Elective III',ltp:'3-0-0',cr:3,type:'Multi-disciplinary'},
+      {code:'BCO642A',name:'Machine Learning',ltp:'1-0-0',cr:1,type:'Core'},
+      {code:'BCO643A',name:'Machine Learning & Capstone Project (Prompt Engineering)',ltp:'0-0-6',cr:3,type:'Core'},
+    ]
+  },
+  {
+    id:7, type:'ODD', year:'Aug–Dec 2028', status:'upcoming', credits:12,
+    courses:[
+      {code:'BCO653A',name:'Advanced Cyber Security Techniques',ltp:'3-0-0',cr:3,type:'Core',ec:true},
+      {code:'BCO654A',name:'Application of AI in Cyber Security',ltp:'3-0-0',cr:3,type:'Core',ec:true},
+      {code:'BCO655A',name:'Network & Cloud Security',ltp:'3-0-0',cr:3,type:'Core',ec:true},
+      {code:'BCO656A',name:'Advanced Cyber Security Lab',ltp:'0-0-2',cr:1,type:'Core',ec:true},
+      {code:'BCO657A',name:'Network Security Lab',ltp:'0-0-2',cr:1,type:'Core',ec:true},
+      {code:'BCO207A',name:'Technical Writing',ltp:'0-0-2',cr:1,type:'Core'},
+    ]
+  },
+  {
+    id:8, type:'EVEN', year:'Jan–Jun 2029', status:'upcoming', credits:16,
+    courses:[
+      {code:'BCO034C',name:'Industrial Project / Dissertation',ltp:'0-0-32',cr:16,type:'Core'},
+    ]
+  },
+];
+
+let activeSem = 2;
+
+function badgeClass(type){
+  return {Core:'b-core',Foundation:'b-fnd',AEC:'b-aec',SEC:'b-sec',VAC:'b-vac','Multi-disciplinary':'b-multi'}[type]||'b-fnd';
+}
+
+function renderNav(){
+  const nav = document.getElementById('sem-nav');
+  nav.innerHTML = SEMS.map(s=>`
+    <button class="sem-btn${s.id===activeSem?' active':''}" onclick="switchSem(${s.id})">
+      <span>Semester ${s.id}</span>
+      <span class="credits-hint">${s.credits}cr</span>
+    </button>
+  `).join('');
+}
+
+function switchSem(id){
+  activeSem=id;
+  renderNav();
+  renderMain();
+}
+
+function renderCourseCard(c, showFullSyl){
+  const badgeTyp = badgeClass(c.type);
+  const ltpLabel = c.ltp || '';
+  const hasSyl = showFullSyl && (c.modules||c.experiments);
+  const isCommon = c.syl==='common';
+  const id = 'c-'+c.code.replace(/[^a-zA-Z0-9]/g,'_');
+  return `
+    <div class="course-card" id="${id}">
+      <div class="course-head" onclick="toggleCard('${id}')">
+        <div>
+          <div class="c-code">${c.code} · ${ltpLabel}</div>
+          <div class="c-name">${c.name}</div>
+          <div class="badges">
+            <span class="badge ${badgeTyp}">${c.type}</span>
+            ${c.ec?'<span class="badge b-ec">EC-Council</span>':''}
+            <span class="badge b-cr">${c.cr} cr</span>
+          </div>
+        </div>
+        <span class="c-toggle" id="${id}-toggle">+</span>
+      </div>
+      <div class="c-body" id="${id}-body">
+        <div class="c-inner">
+          ${hasSyl ? renderSyllabus(c) : isCommon ? '<div class="syl-common">Syllabus included in common course documentation — not part of specialization document.</div>' : '<div class="syl-na">Syllabus will be available when this semester begins.</div>'}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderSyllabus(c){
+  let html = '<div class="syl-lbl">Course Outcomes</div><div class="cos">';
+  (c.cos||[]).forEach((co,i)=>{ html+=`<div class="co"><span class="co-k">CO${i+1}</span><span>${co}</span></div>` });
+  html+='</div>';
+  if(c.modules){
+    html+='<div class="syl-lbl" style="margin-top:1rem">Syllabus Modules</div><div class="mods">';
+    c.modules.forEach(m=>{
+      html+=`<div class="mod"><span class="mod-n">${m.n}</span><div><div class="mod-title">${m.title}</div><div class="mod-topics">${m.topics}</div></div></div>`;
+    });
+    html+='</div>';
+  }
+  if(c.experiments){
+    html+='<div class="syl-lbl" style="margin-top:1rem">Lab Experiments</div><div class="exps">';
+    c.experiments.forEach((e,i)=>{
+      html+=`<div class="exp"><span class="exp-n">E${i+1}</span><span>${e}</span></div>`;
+    });
+    html+='</div>';
+  }
+  return html;
+}
+
+function toggleCard(id){
+  const body = document.getElementById(id+'-body');
+  const tog = document.getElementById(id+'-toggle');
+  const open = body.classList.toggle('open');
+  tog.classList.toggle('open', open);
+}
+
+function renderCalendar(dates){
+  const rows = dates.map(d=>`
+    <div class="tl-item">
+      <span class="tl-dot ${d.dot}"></span>
+      <div class="tl-info">
+        <div class="tl-date">${d.date}</div>
+        <div class="tl-label ${d.dot}">${d.label}</div>
+      </div>
+    </div>
+  `).join('');
+  return `
+    <div class="cal-card">
+      <div class="cal-head">
+        <div class="cal-title">Academic Calendar — Semester 2</div>
+        <div class="cal-note">Even semester · 1st year · 84 teaching days</div>
+      </div>
+      <div class="timeline">${rows}</div>
+    </div>
+  `;
+}
+
+function renderMain(){
+  const sem = SEMS.find(s=>s.id===activeSem);
+  const main = document.getElementById('main-content');
+  const statusLabel = {completed:'Completed',current:'In Progress',upcoming:'Upcoming'}[sem.status];
+
+  let html = `
+    <div class="sem-title">
+      Semester ${sem.id} &nbsp;
+      <span class="status-pill ${sem.status}">${statusLabel}</span>
+    </div>
+    <div class="sem-desc">${sem.type} Semester · ${sem.year}</div>
+    <div class="stats">
+      <div class="stat"><div class="stat-val">${sem.courses.length}</div><div class="stat-lbl">Courses</div></div>
+      <div class="stat"><div class="stat-val">${sem.credits}</div><div class="stat-lbl">Credits</div></div>
+      <div class="stat"><div class="stat-val">${sem.teaching||'—'}</div><div class="stat-lbl">Teaching days</div></div>
+      <div class="stat"><div class="stat-val">${sem.exam||'—'}</div><div class="stat-lbl">Exam days</div></div>
+    </div>
+  `;
+
+  if(sem.calendarDates){
+    html += renderCalendar(sem.calendarDates);
+  }
+
+  if(sem.status==='current'){
+    // group by type
+    const ecCore = sem.courses.filter(c=>c.ec);
+    const other = sem.courses.filter(c=>!c.ec);
+    html += `<div class="sec-div">Specialization — EC-Council</div>`;
+    html += ecCore.map(c=>renderCourseCard(c,true)).join('');
+    html += `<div class="sec-div">Common Courses</div>`;
+    html += other.map(c=>renderCourseCard(c,true)).join('');
+  } else if(sem.status==='completed'){
+    html += `<div class="sec-div">Courses</div>`;
+    const note = `<div class="empty-note">This semester has been completed. Syllabus records available with your department.</div>`;
+    html += sem.courses.map(c=>renderCourseCard(c,false)).join('') + note;
+  } else {
+    html += `<div class="sec-div">Courses</div>`;
+    html += sem.courses.map(c=>renderCourseCard(c,false)).join('');
+    html += `<div class="empty-note" style="margin-top:.75rem">Detailed syllabi will be added when this semester begins.</div>`;
+  }
+
+  main.innerHTML = html;
+}
+
+renderNav();
+renderMain();
+
+const HASH = 'ae30a06c6efe2ae88421eff04626a246fbb92eb60f12b386481b38c58639d866';
+
+function toggleDark(){
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  const next=dark?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  document.getElementById('dark-btn').textContent=next==='dark'?'\u2600':'\u{1F319}';
+  localStorage.setItem('theme',next);
+}
+(function(){
+  const saved=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  if(saved==='dark'){document.documentElement.setAttribute('data-theme','dark');setTimeout(()=>{const b=document.getElementById('dark-btn');if(b)b.textContent='\u2600';},0);}
+})();
+
+async function unlock(){
+  const inp = document.getElementById('lock-input');
+  const err = document.getElementById('lock-err');
+  const val = inp.value;
+  const encoded = new TextEncoder().encode(val);
+  const buf = await crypto.subtle.digest('SHA-256', encoded);
+  const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  if(hash === HASH){
+    document.getElementById('lockscreen').style.display='none';
+    document.getElementById('app').style.display='block';
+  } else {
+    err.textContent = 'Incorrect code. Try again.';
+    inp.classList.add('err');
+    inp.value='';
+    setTimeout(()=>inp.classList.remove('err'),400);
+  }
+}
+</script>
+</div>
+</body>
+</html>
